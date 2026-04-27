@@ -941,7 +941,7 @@ export function buildMonthBoard(opts: BuildMonthBoardOptions): MonthBoardData {
 }
 
 /**
- * Build one DayStatus per calendar day (Mon–Sun), grouped by week.
+ * Build one DayStatus per weekday (Mon–Fri), grouped by week.
  *
  * Rule: if ANY busy block in the snapshot overlaps this day's
  * workday window, the day is "booked". Otherwise "available".
@@ -964,7 +964,7 @@ export function buildDayBoard(opts: BuildDayBoardOptions): WeekGroup[] {
   }
   const mondayKey = anchor.startOf("week").toFormat("yyyy-LL-dd"); // Luxon: Monday
 
-  // Build full calendar weeks (Mon–Sun).
+  // Build 7 days × weeks, then keep only weekdays.
   const totalDays = 7 * opts.weeks;
   const windows = buildWorkdayWindows(
     mondayKey,
@@ -986,7 +986,9 @@ export function buildDayBoard(opts: BuildDayBoardOptions): WeekGroup[] {
 
   const groups: WeekGroup[] = [];
   for (let wk = 0; wk < opts.weeks; wk++) {
-    const weekWindows = windows.slice(wk * 7, wk * 7 + 7);
+    const weekWindows = windows
+      .slice(wk * 7, wk * 7 + 7)
+      .filter((w) => !w.isWeekend);
     const days: DayStatus[] = weekWindows.map((w) => {
       const overlapping = overlapsAny(w.frame, busy);
       // Conservative: any overlap (including tentative) → booked.

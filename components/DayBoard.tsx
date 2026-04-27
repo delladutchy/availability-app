@@ -11,7 +11,6 @@ import {
 
 interface Props {
   weeks: WeekGroup[];
-  weekendTodayLabel?: string;
 }
 
 type BookedLabel = ReturnType<typeof summarizeBookedDayLabel>;
@@ -39,7 +38,7 @@ function stripJobPrefix(summary: string, jobNumber?: string): string {
  * Each weekday renders as a single row: date on the left, status badge
  * on the right. No times, no slots, no grid. Just "Available" / "Booked".
  */
-export function DayBoard({ weeks, weekendTodayLabel }: Props) {
+export function DayBoard({ weeks }: Props) {
   const [activeDetailPanel, setActiveDetailPanel] = useState<ActiveDetailPanel | null>(null);
 
   useEffect(() => {
@@ -57,25 +56,6 @@ export function DayBoard({ weeks, weekendTodayLabel }: Props) {
 
   const closeDetailPanel = () => setActiveDetailPanel(null);
 
-  const weekendMarkerDayNumber = weekendTodayLabel?.match(/(\d{1,2})$/)?.[1] ?? null;
-  const weekendMarkerLabelPrefix =
-    weekendTodayLabel && weekendMarkerDayNumber
-      ? weekendTodayLabel.slice(0, -weekendMarkerDayNumber.length)
-      : weekendTodayLabel;
-  const weekendMarker = weekendTodayLabel ? (
-    <div className="board-weekend-marker" aria-label={`Today: ${weekendTodayLabel}`}>
-      {weekendMarkerDayNumber && weekendMarkerLabelPrefix ? (
-        <span className="board-day-label-today">
-          <span>{weekendMarkerLabelPrefix}</span>
-          <span className="board-day-today" aria-label="Today">
-            {weekendMarkerDayNumber}
-          </span>
-        </span>
-      ) : (
-        weekendTodayLabel
-      )}
-    </div>
-  ) : null;
   const hasRows = weeks.some((wk) => wk.days.length > 0);
   const weekRows = weeks.map((wk) => {
     const dayRows = wk.days.map((d) => {
@@ -97,7 +77,6 @@ export function DayBoard({ weeks, weekendTodayLabel }: Props) {
   if (!hasRows) {
     return (
       <div className="board">
-        {weekendMarker}
         <div className="board-empty" role="status">
           No availability rows for this range.
         </div>
@@ -107,7 +86,6 @@ export function DayBoard({ weeks, weekendTodayLabel }: Props) {
 
   return (
     <div className="board">
-      {weekendMarker}
       {weekRows.map((week, weekIndex) => (
         <section
           key={week.wk.weekOf}

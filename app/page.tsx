@@ -2,7 +2,6 @@ import { readCurrentSnapshot } from "@/lib/store";
 import {
   classifySnapshot,
   buildDayBoard,
-  trimWeekRowsForScheduleList,
   resolveWeekNavigation,
   buildMonthBoard,
   resolveMonthNavigation,
@@ -25,7 +24,7 @@ import Link from "next/link";
  *     ...
  *
  * Rules:
- *   - Monday–Sunday week rows.
+ *   - Monday–Friday only. Weekends hidden.
  *   - One status per day: Available or Booked.
  *   - Any overlapping blocker-calendar event (incl. tentative) → Booked.
  *
@@ -100,35 +99,20 @@ export default async function AvailabilityPage({
       ? requestedWeekParam
       : todayKey;
   const clampedRequestedWeek = requestedWeek < todayKey ? todayKey : requestedWeek;
-  const currentWeekStart = resolveWeekNavigation({
-    requestedDate: todayKey,
-    fallbackDate: todayKey,
-    windowStartUtc,
-    windowEndUtc,
-    timezone: tz,
-  }).weekStart;
-
-  const effectiveWeekStart = resolveWeekNavigation({
+  const weekNav = resolveWeekNavigation({
     requestedDate: clampedRequestedWeek,
     fallbackDate: todayKey,
     windowStartUtc,
     windowEndUtc,
     timezone: tz,
-  }).weekStart;
-  const weekNav = resolveWeekNavigation({
-    requestedDate: effectiveWeekStart,
-    fallbackDate: todayKey,
-    windowStartUtc,
-    windowEndUtc,
-    timezone: tz,
   });
-  const weekCanGoPrev = weekNav.hasPrev && weekNav.weekStart > currentWeekStart;
+  const weekCanGoPrev = weekNav.hasPrev && weekNav.weekStart > todayKey;
   const weekCanGoNext = weekNav.hasNext;
 
-  // List view: selected week + next week. Current selected week hides past rows.
-  const rawWeekRows = buildDayBoard({
+  // List view: selected week + next week.
+  const weekRowsSource = buildDayBoard({
     snapshot: snapshotData,
-    startDate: effectiveWeekStart,
+    startDate: weekNav.weekStart,
     weeks: 2,
     timezone: tz,
     workdayStartHour: file.workdayStartHour,
@@ -136,12 +120,12 @@ export default async function AvailabilityPage({
     nowMs: now,
     todayKey,
   });
-  const weekRows = trimWeekRowsForScheduleList({
-    weeks: rawWeekRows,
-    selectedWeekStart: effectiveWeekStart,
-    currentWeekStart,
-    todayKey,
-  });
+  const weekRows = weekRowsSource
+    .map((wk) => ({
+      ...wk,
+      days: wk.days.filter((d) => d.date >= todayKey),
+    }))
+    .filter((wk) => wk.days.length > 0);
 
   // Determine which month to show. Default: this month. `?month=YYYY-MM` overrides.
   const requestedMonthParam = firstParam(searchParams.month)?.trim();
@@ -170,8 +154,8 @@ export default async function AvailabilityPage({
     todayKey,
   });
 
-  const listToggleStart = viewMode === "month" ? `${monthNav.monthKey}-01` : effectiveWeekStart;
-  const monthToggleKey = viewMode === "list" ? effectiveWeekStart.slice(0, 7) : monthNav.monthKey;
+  const listToggleStart = viewMode === "month" ? `${monthNav.monthKey}-01` : weekNav.weekStart;
+  const monthToggleKey = viewMode === "list" ? weekNav.weekStart.slice(0, 7) : monthNav.monthKey;
 
   return (
     <div className="page">

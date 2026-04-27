@@ -98,15 +98,17 @@ describe("buildDayBoard — employer-facing day board", () => {
     workdayEndHour: 18,
   };
 
-  it("shows 7 days (Mon–Sun) per week", () => {
+  it("shows 5 weekdays (Mon–Fri), no weekends", () => {
     const snap = makeSnapshot();
     const weeks = buildDayBoard({ ...defaultOpts, snapshot: snap });
     expect(weeks).toHaveLength(1);
-    expect(weeks[0]?.days).toHaveLength(7);
+    expect(weeks[0]?.days).toHaveLength(5);
     const labels = weeks[0]?.days.map((d) => d.label) ?? [];
     expect(labels[0]).toMatch(/^Monday/);
-    expect(labels[5]).toMatch(/^Saturday/);
-    expect(labels[6]).toMatch(/^Sunday/);
+    expect(labels[4]).toMatch(/^Friday/);
+    for (const l of labels) {
+      expect(l).not.toMatch(/^Saturday|^Sunday/);
+    }
   });
 
   it("marks an untouched weekday as Available", () => {
@@ -236,12 +238,12 @@ describe("buildDayBoard — employer-facing day board", () => {
     expect(weeks[0]?.days[0]?.status).toBe("available");
   });
 
-  it("shows 14 day rows across 2 weeks when weeks=2", () => {
+  it("shows 10 day rows across 2 weeks when weeks=2", () => {
     const snap = makeSnapshot();
     const weeks = buildDayBoard({ ...defaultOpts, snapshot: snap, weeks: 2 });
     expect(weeks).toHaveLength(2);
-    expect(weeks[0]?.days).toHaveLength(7);
-    expect(weeks[1]?.days).toHaveLength(7);
+    expect(weeks[0]?.days).toHaveLength(5);
+    expect(weeks[1]?.days).toHaveLength(5);
   });
 
   it("anchors correctly when startDate is a Wednesday (rolls back to Monday)", () => {
@@ -261,8 +263,8 @@ describe("buildDayBoard — employer-facing day board", () => {
       config: { ...makeSnapshot().config, timezone: "America/Los_Angeles" },
     });
     const weeks = buildDayBoard({ ...defaultOpts, snapshot: snap });
-    // Just confirm we produced full week rows; the labels reflect NY calendar days.
-    expect(weeks[0]?.days).toHaveLength(7);
+    // Just confirm we produced M–F rows; the labels reflect NY calendar days.
+    expect(weeks[0]?.days).toHaveLength(5);
     expect(weeks[0]?.days[0]?.label).toMatch(/^Monday/);
   });
 
@@ -275,15 +277,14 @@ describe("buildDayBoard — employer-facing day board", () => {
     expect(weeks[0]?.days[1]?.isToday).toBe(false);
   });
 
-  it("marks weekend today correctly while rendering full week", () => {
+  it("does not include weekend rows when today falls on a weekend", () => {
     const snap = makeSnapshot();
     // Sat Apr 25 2026 12:00 ET
     const nowMs = Date.parse("2026-04-25T16:00:00.000Z");
     const weeks = buildDayBoard({ ...defaultOpts, snapshot: snap, nowMs, todayKey: "2026-04-25" });
     const labels = weeks[0]?.days.map((d) => d.label) ?? [];
-    expect(weeks[0]?.days).toHaveLength(7);
-    expect(labels).toContain("Saturday, Apr 25");
-    expect(weeks[0]?.days.find((d) => d.date === "2026-04-25")?.isToday).toBe(true);
+    expect(labels).not.toContain("Saturday, Apr 25");
+    expect(weeks[0]?.days.every((d) => !d.isWeekend)).toBe(true);
   });
 
   it("uses an explicit todayKey when provided", () => {
@@ -371,13 +372,11 @@ describe("trimWeekRowsForScheduleList", () => {
     expect(out[0]?.days.map((d) => d.date)).toEqual([
       "2026-04-23",
       "2026-04-24",
-      "2026-04-25",
-      "2026-04-26",
     ]);
-    expect(out[1]?.days).toHaveLength(7);
+    expect(out[1]?.days).toHaveLength(5);
   });
 
-  it("shows only Sunday when today is Sunday in the selected current week", () => {
+  it("keeps weekday rows when today is Sunday in the selected current week", () => {
     const weeks = buildDayBoard({
       ...baseOpts,
       snapshot: makeSnapshot(),
@@ -392,11 +391,17 @@ describe("trimWeekRowsForScheduleList", () => {
       todayKey: "2026-04-26",
     });
 
-    expect(out[0]?.days.map((d) => d.date)).toEqual(["2026-04-26"]);
-    expect(out[1]?.days).toHaveLength(7);
+    expect(out[0]?.days.map((d) => d.date)).toEqual([
+      "2026-04-20",
+      "2026-04-21",
+      "2026-04-22",
+      "2026-04-23",
+      "2026-04-24",
+    ]);
+    expect(out[1]?.days).toHaveLength(5);
   });
 
-  it("keeps all 7 days for a selected future week", () => {
+  it("keeps all weekdays for a selected future week", () => {
     const weeks = buildDayBoard({
       ...baseOpts,
       snapshot: makeSnapshot(),
@@ -411,7 +416,7 @@ describe("trimWeekRowsForScheduleList", () => {
       todayKey: "2026-04-23",
     });
 
-    expect(out[0]?.days).toHaveLength(7);
+    expect(out[0]?.days).toHaveLength(5);
     expect(out[0]?.days[0]?.date).toBe("2026-04-27");
   });
 });
