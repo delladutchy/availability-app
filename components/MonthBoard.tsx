@@ -6,6 +6,7 @@ import { summarizeBookedDayLabel, type MonthBoardData } from "@/lib/view";
 interface Props {
   month: MonthBoardData;
   todayKey: string;
+  onAvailableDayClick?: (date: string) => void;
 }
 
 const WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -42,7 +43,7 @@ function stripJobPrefix(summary: string, jobNumber?: string): string {
 /**
  * Monthly board with compact multi-day event bars.
  */
-export function MonthBoard({ month, todayKey }: Props) {
+export function MonthBoard({ month, todayKey, onAvailableDayClick }: Props) {
   const [activeDetailPanel, setActiveDetailPanel] = useState<ActiveDetailPanel | null>(null);
 
   useEffect(() => {
@@ -173,6 +174,10 @@ export function MonthBoard({ month, todayKey }: Props) {
                 <div className="month-week-days">
                   {week.days.map((d, dayIndex) => {
                     const isPastCurrentMonthDay = d.isCurrentMonth && (monthIsPast || d.date < todayKey);
+                    const canCreateOnDay = !!onAvailableDayClick
+                      && d.status === "available"
+                      && d.isCurrentMonth
+                      && !isPastCurrentMonthDay;
                     const bookedLabel = d.status === "booked"
                       ? summarizeBookedDayLabel(d.eventNames, d.eventDetails, d.bookedDisplay)
                       : null;
@@ -200,7 +205,17 @@ export function MonthBoard({ month, todayKey }: Props) {
                         </div>
                         {d.isCurrentMonth && !isPastCurrentMonthDay ? (
                           d.status === "available" ? (
-                            <div className="month-day-availability" aria-hidden="true">Available</div>
+                            canCreateOnDay ? (
+                              <button
+                                type="button"
+                                className="month-day-availability month-day-availability--action"
+                                onClick={() => onAvailableDayClick?.(d.date)}
+                              >
+                                Available
+                              </button>
+                            ) : (
+                              <div className="month-day-availability" aria-hidden="true">Available</div>
+                            )
                           ) : bookedLabel?.isPrivateUnavailable ? (
                             <div className="month-day-unavailable-text" aria-hidden="true">Unavailable</div>
                           ) : hasCoveringBar ? (

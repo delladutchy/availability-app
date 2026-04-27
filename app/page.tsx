@@ -9,7 +9,7 @@ import {
 import { todayInZone } from "@/lib/time";
 import { getConfig } from "@/lib/config";
 import { DayBoard } from "@/components/DayBoard";
-import { MonthBoard } from "@/components/MonthBoard";
+import { MonthBoardEditor } from "@/components/MonthBoardEditor";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import Link from "next/link";
 
@@ -240,7 +240,12 @@ export default async function AvailabilityPage({
             )}
           </nav>
 
-          <MonthBoard month={month} todayKey={todayKey} />
+          <MonthBoardEditor
+            initialMonth={month}
+            monthKey={monthNav.monthKey}
+            timezone={tz}
+            todayKey={todayKey}
+          />
         </>
       )}
 

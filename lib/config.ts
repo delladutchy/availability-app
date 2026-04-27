@@ -108,6 +108,18 @@ const EnvSchema = z.object({
   /** Long-lived refresh token produced during one-time setup. */
   GOOGLE_REFRESH_TOKEN: z.string().min(1),
 
+  /**
+   * Target calendar id for all-day gig creation writes.
+   * Optional for read-only deployments.
+   */
+  GOOGLE_CALENDAR_ID: z.string().min(1).optional(),
+
+  /**
+   * Shared token that unlocks editor write access.
+   * Optional for read-only deployments.
+   */
+  EDITOR_TOKEN: z.string().min(16).optional(),
+
   /** Token that must be presented to view /admin status page. */
   ADMIN_TOKEN: z.string().min(16, "ADMIN_TOKEN must be at least 16 chars"),
 
