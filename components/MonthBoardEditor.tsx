@@ -170,7 +170,8 @@ export function MonthBoardEditor({
       <MonthBoard
         month={month}
         todayKey={todayKey}
-        onAvailableDayClick={editorToken ? startCreate : undefined}
+        editorModeActive={!!editorToken}
+        onAvailableDayClick={startCreate}
       />
 
       {modalDate ? (

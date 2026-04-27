@@ -899,6 +899,7 @@ body {
 
 .month-day--actionable {
   cursor: pointer;
+  position: relative;
 }
 
 .month-day--actionable:hover {
@@ -921,6 +922,21 @@ body {
   color: color-mix(in srgb, var(--text) 92%, var(--today-accent));
   font-size: 12px;
   font-weight: 500;
+}
+
+.month-day-action-hitbox {
+  appearance: none;
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  z-index: 4;
+}
+
+.month-day-action-hitbox:focus-visible {
+  outline: 2px solid var(--today-accent);
+  outline-offset: -2px;
 }
 .month-day-chip {
   display: inline-flex;
