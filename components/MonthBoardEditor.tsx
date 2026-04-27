@@ -163,7 +163,7 @@ export function MonthBoardEditor({
     <>
       <section className="gig-editor" aria-label="Gig editor mode">
         <div className="gig-editor-state">
-          <span className="gig-editor-text">{editorToken ? "Editor mode" : "Read-only mode"}</span>
+          <span className="gig-editor-text">{editorToken ? "Editor mode active" : "Read-only mode"}</span>
         </div>
       </section>
 

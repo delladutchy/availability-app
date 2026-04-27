@@ -10,6 +10,7 @@ import { todayInZone } from "@/lib/time";
 import { getConfig } from "@/lib/config";
 import { DayBoard } from "@/components/DayBoard";
 import { MonthBoardEditor } from "@/components/MonthBoardEditor";
+import { EditorModeBadge } from "@/components/EditorModeBadge";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import Link from "next/link";
 
@@ -166,6 +167,8 @@ export default async function AvailabilityPage({
         </h1>
         <ThemeToggle />
       </header>
+
+      <EditorModeBadge />
 
       <nav className="view-toggle" aria-label="View mode">
         <Link

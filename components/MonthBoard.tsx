@@ -190,15 +190,24 @@ export function MonthBoard({ month, todayKey, onAvailableDayClick }: Props) {
                         key={d.date}
                         role="gridcell"
                         aria-label={`${d.date}: ${d.status === "booked" ? (bookedLabel?.label ?? "Busy") : "Available"}`}
-                      className={[
-                        "month-day",
-                        d.status === "booked" ? "month-day--booked" : "month-day--available",
-                        bookedLabel?.isPrivateUnavailable ? "month-day--booked-private" : "",
-                        hasCoveringBar ? "month-day--occupied" : "",
-                        isPastCurrentMonthDay ? "month-day--past" : "",
-                        d.isToday ? "today" : "",
-                        d.isCurrentMonth ? "current" : "outside",
-                      ].filter(Boolean).join(" ")}
+                        className={[
+                          "month-day",
+                          d.status === "booked" ? "month-day--booked" : "month-day--available",
+                          bookedLabel?.isPrivateUnavailable ? "month-day--booked-private" : "",
+                          hasCoveringBar ? "month-day--occupied" : "",
+                          isPastCurrentMonthDay ? "month-day--past" : "",
+                          canCreateOnDay ? "month-day--actionable" : "",
+                          d.isToday ? "today" : "",
+                          d.isCurrentMonth ? "current" : "outside",
+                        ].filter(Boolean).join(" ")}
+                        onClick={canCreateOnDay ? () => onAvailableDayClick?.(d.date) : undefined}
+                        tabIndex={canCreateOnDay ? 0 : undefined}
+                        onKeyDown={canCreateOnDay ? (event) => {
+                          if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            onAvailableDayClick?.(d.date);
+                          }
+                        } : undefined}
                       >
                         <div className={`month-day-num${d.isToday ? " month-day-num--today" : ""}`}>
                           {d.dayOfMonth}
@@ -206,13 +215,9 @@ export function MonthBoard({ month, todayKey, onAvailableDayClick }: Props) {
                         {d.isCurrentMonth && !isPastCurrentMonthDay ? (
                           d.status === "available" ? (
                             canCreateOnDay ? (
-                              <button
-                                type="button"
-                                className="month-day-availability month-day-availability--action"
-                                onClick={() => onAvailableDayClick?.(d.date)}
-                              >
+                              <div className="month-day-availability month-day-availability--action" aria-hidden="true">
                                 Available
-                              </button>
+                              </div>
                             ) : (
                               <div className="month-day-availability" aria-hidden="true">Available</div>
                             )
